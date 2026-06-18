@@ -34,21 +34,40 @@ model Store {
 }
 
 model User {
-  id        String @id @default(cuid())
-  email     String @unique
-  name      String
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String
+  password          String?
+  emailVerified     Boolean   @default(false)
+  image             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt @default(now())
 
-  role      Role
+  role              Role
 
-  tenantId  String
-  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id])
 
-  storeId   String?
-  store     Store? @relation(fields: [storeId], references: [id])
+  storeId           String?
+  store             Store?    @relation(fields: [storeId], references: [id])
 
-  tickets   Ticket[]
-  shifts    Shift[]
-  attendances Attendance[]
+  tickets           Ticket[]
+  shifts            Shift[]
+  attendances       Attendance[]
+  sessions          Session[]
+}
+
+model Session {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt          DateTime
+  ipAddress          String?
+  userAgent          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([userId, id])
 }
 
 enum Role {

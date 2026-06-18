@@ -1,4 +1,4 @@
-import { getServerSession } from "next-auth"
+import { auth } from "./auth.config"
 import { redirect } from "next/navigation"
 
 export function getContext(user: any) {
@@ -9,7 +9,9 @@ export function getContext(user: any) {
 }
 
 export async function getAuthSession() {
-  return await getServerSession()
+  return await auth.api.getSession({
+    headers: await new Headers(),
+  })
 }
 
 export async function requireAuth() {
@@ -23,7 +25,13 @@ export async function requireAuth() {
 export async function requireRole(roles: string[]) {
   const session = await requireAuth()
   
-  if (!session.user?.role || !roles.includes(session.user.role as string)) {
+  // Get user details from database
+  const { prisma } = await import("./prisma")
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id }
+  })
+  
+  if (!user?.role || !roles.includes(user.role)) {
     redirect("/unauthorized")
   }
   
